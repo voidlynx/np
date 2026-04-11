@@ -96,10 +96,18 @@ def compile_image(tdata: dict):
         maxlength = 14
     else:
         maxlength = 8
-    # Three lines max, otherwise it overflows onto artist/album
+
+    # Handle max lengths
+    # Title has to be cut off after 3 lines
+    # Artist and Album cap out at 29ch
     title_wrapped = textwrap.fill(tdata["title"], width=maxlength)
     lines = title_wrapped.split("\n", 3)
     title_wrapped = "\n".join(lines[:3])
+    if len(tdata["artist"]) > 29:
+        tdata["artist"] = tdata["artist"][:28] + "..."
+    if len(tdata["album"]) > 29:
+        tdata["album"] = tdata["album"][:28] + "..."
+
     draw = ImageDraw.Draw(canvas)
 
     # Check for presence of non-ASCII chars & draw text
@@ -112,11 +120,11 @@ def compile_image(tdata: dict):
     if tdata["artist"].isascii():
         draw.text((72, 69), tdata["artist"], textcolor, subtitlefont)
     else:
-        draw.text((72, 69), tdata["artist"], textcolor, nonasciisubfont)
+        draw.text((72, 62), tdata["artist"], textcolor, nonasciisubfont)
     if tdata["album"].isascii():
         draw.text((72, 76), tdata["album"], textcolor, subtitlefont)
     else:
-        draw.text((72, 76), tdata["album"], textcolor, nonasciisubfont)
+        draw.text((72, 74), tdata["album"], textcolor, nonasciisubfont)
     canvas.save("nowplaying.png", optimize=True)
     canvas.close()  # Minor memory optimization
     return True
