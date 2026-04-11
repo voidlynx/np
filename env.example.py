@@ -1,0 +1,3 @@
+PORT = 80
+LFM_USERNAME = "xyz"
+LFM_API_KEY = "abcdef123"
