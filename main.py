@@ -1,9 +1,9 @@
 # pyright: reportOptionalMemberAccess=false, reportIndexIssue=false
 import textwrap
 import threading
-import time
-import tomllib
 from io import BytesIO
+from time import sleep
+from tomllib import load as tl
 
 import requests
 from flask import Flask, request, send_file
@@ -11,15 +11,21 @@ from PIL import Image, ImageDraw, ImageFont
 
 import env
 
-# Global variables
+# Global variables and caching
 app = Flask(__name__)
 trackdata = {}
 titlefont = ImageFont.truetype("static/visitor1.ttf", size=20)
 subtitlefont = ImageFont.truetype("static/visitor1.ttf", size=10)
 nonasciifont = ImageFont.truetype("static/NotoSansJP-Regular.ttf", size=20)
 nonasciisubfont = ImageFont.truetype("static/NotoSansJP-Regular.ttf", size=10)
+if env.DARK_MODE:
+    template_nowlistening = Image.open("static/template-nowlistening-dark.png")
+    template_lastplayed = Image.open("static/template-lastplayed-dark.png")
+else:
+    template_nowlistening = Image.open("static/template-nowlistening-light.png")
+    template_lastplayed = Image.open("static/template-lastplayed-light.png")
 with open("pyproject.toml", "rb") as pptoml:
-    version = tomllib.load(pptoml)["project"]["version"]
+    version = tl(pptoml)["project"]["version"]
 
 
 # Main function to get the data for the last played song
@@ -54,7 +60,7 @@ def handle_requests():
 
 
 # Main loop
-def tdatafetch(noloop: bool = False):
+def fetch(noloop: bool = False):
     global trackdata
     while True:
         try:
@@ -69,19 +75,23 @@ def tdatafetch(noloop: bool = False):
         if noloop:
             break
         else:
-            time.sleep(60)
+            sleep(env.UPDATE_INTERVAL)
 
 
 # Image compiler
 def compile_image(tdata: dict):
     if tdata["np"]:
-        result = Image.open("static/template-nowlistening-dark.png")
+        canvas = template_nowlistening.copy()
     else:
-        result = Image.open("static/template-lastplayed-dark.png")
+        canvas = template_lastplayed.copy()
+    if env.DARK_MODE:
+        textcolor = "white"
+    else:
+        textcolor = "black"
     cover = Image.open(BytesIO(requests.get(tdata["cover"]).content))
-    result.paste(cover, (4, 19))
+    canvas.paste(cover, (4, 19))
 
-    # 174px max length, 12 or 6px/char depending on font. 14ch max ASCII; 8ch JP
+    # 174px max length, 12 or 6px/char depending on font. 14ch max ASCII; ~8ch JP
     if tdata["title"].isascii():
         maxlength = 14
     else:
@@ -90,29 +100,30 @@ def compile_image(tdata: dict):
     title_wrapped = textwrap.fill(tdata["title"], width=maxlength)
     lines = title_wrapped.split("\n", 3)
     title_wrapped = "\n".join(lines[:3])
-    draw = ImageDraw.Draw(result)
+    draw = ImageDraw.Draw(canvas)
 
-    # Check for presence of non-ASCII chars
+    # Check for presence of non-ASCII chars & draw text
     # Slightly messy, because if there's one among ASCII text - it goes weird
     # Also probably works poorly with Cyrillic
-    if not tdata["title"].isascii():
-        draw.multiline_text((72, 15), title_wrapped, "white", nonasciifont)
+    if tdata["title"].isascii():
+        draw.multiline_text((72, 15), title_wrapped, textcolor, titlefont)
     else:
-        draw.multiline_text((72, 15), title_wrapped, "white", titlefont)
-    if not tdata["artist"].isascii():
-        draw.text((72, 69), tdata["artist"], "white", nonasciisubfont)
+        draw.multiline_text((72, 15), title_wrapped, textcolor, nonasciifont)
+    if tdata["artist"].isascii():
+        draw.text((72, 69), tdata["artist"], textcolor, subtitlefont)
     else:
-        draw.text((72, 69), tdata["artist"], "white", subtitlefont)
-    if not tdata["album"].isascii():
-        draw.text((72, 76), tdata["album"], "white", nonasciisubfont)
+        draw.text((72, 69), tdata["artist"], textcolor, nonasciisubfont)
+    if tdata["album"].isascii():
+        draw.text((72, 76), tdata["album"], textcolor, subtitlefont)
     else:
-        draw.text((72, 76), tdata["album"], "white", subtitlefont)
-    result.save("nowplaying.png", optimize=True)
+        draw.text((72, 76), tdata["album"], textcolor, nonasciisubfont)
+    canvas.save("nowplaying.png", optimize=True)
+    canvas.close()  # Minor memory optimization
     return True
 
 
 # Daemonize main loop
-update_thread = threading.Thread(target=tdatafetch, daemon=True)
+update_thread = threading.Thread(target=fetch, daemon=True)
 update_thread.start()
 
 
@@ -122,7 +133,7 @@ def root():
     # /?force or /?force=1 to regenerate image ASAP
     if "force" in request.args:
         print("Forcing a re-fetch!")
-        tdatafetch(noloop=True)
+        fetch(noloop=True)
     return send_file("nowplaying.png", mimetype="image/png")
 
 
@@ -133,5 +144,6 @@ def plain():
     return tdata
 
 
+# WARNING: Live Reload tends to mess with the daemon by possibly creating several concurrent loops
 if __name__ == "__main__":
     app.run(debug=True, port=env.PORT)

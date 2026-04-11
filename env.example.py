@@ -1,3 +1,5 @@
 PORT = 80
 LFM_USERNAME = "xyz"
 LFM_API_KEY = "abcdef123"
+DARK_MODE = True
+UPDATE_INTERVAL = 60
