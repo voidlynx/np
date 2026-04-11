@@ -1,0 +1,4 @@
+__pycache__/
+.session_key
+env.py
+nowplaying.png
