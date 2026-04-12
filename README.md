@@ -4,9 +4,7 @@
 ## usage
 requires [poetry](https://python-poetry.org/docs/) dependency management tool, but proficient users can also get required packages their own way by reading the pyproject file. also requires python 3.12 or above.
 
-copy the `env.example.py` file to `env.py`, get yourself a [last.fm api key](https://www.last.fm/api/authentication) and edit the values in your new file with the ones you need. 
-
-clone the repository, go into the folder and execute:
+clone the repository, go into the folder, copy the `env.example.py` file to `env.py`, get yourself a [last.fm api key](https://www.last.fm/api/authentication) and edit the values in your new file with the ones you need. then execute:
 ```
 poetry install
 poetry run python start.py

@@ -1,10 +1,12 @@
 [project]
 name = "np"
 version = "0.2.3"
-description = "forum signatures with last.fm"
+description = "last.fm-powered forum signature nanoservice"
 authors = [
-    {name = "Niko Shens"}
+    {name = "Niko Shens", email = "voidlynx@icloud.com"}
 ]
+readme = "README.md"
+license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
     "flask (>=3.1.3,<4.0.0)",
