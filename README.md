@@ -19,6 +19,11 @@ poetry run python start.py
 - `/plain` -- directly queries the API and returns results as simplified json. takes a second or two
 
 ## showcase
-![Basic light mode embed](static/showcase/np-light.png)
-![Basic dark mode embed](static/showcase/np-dark.png)
-![Dark mode embed with a Japanese song title](static/showcase/np-jp.png)
+![Basic light mode](static/showcase/np-light.png)
+![Basic dark mode](static/showcase/np-dark.png)
+![Dark mode with a Japanese song title](static/showcase/np-jp.png)
+
+### quantized covers
+![Quantized dark mode; Oneohtrix's R Plus Seven](static/showcase/np-quant-rp7.png)
+![Quantized dark mode; Porter Robinson's Nurture](static/showcase/np-quant-nurture.png)
+![Quantized dark mode; NIN's Year Zero](static/showcase/np-quant-yz.png)

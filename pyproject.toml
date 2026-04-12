@@ -1,6 +1,6 @@
 [project]
 name = "np"
-version = "0.2.2"
+version = "0.2.3"
 description = "forum signatures with last.fm"
 authors = [
     {name = "Niko Shens"}

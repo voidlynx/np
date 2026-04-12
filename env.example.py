@@ -8,3 +8,5 @@ LFM_API_KEY = "abcdef123"
 DARK_MODE = True
 # How often the API is queried. 60 is good. Don't go below 10, ideally
 UPDATE_INTERVAL = 60
+# Reduce cover art to 32 colors. Slightly longer processing time, slightly smaller resulting file size.
+QUANTIZE_COVER = False

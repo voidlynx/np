@@ -48,7 +48,11 @@ def handle_requests():
     tdata["artist"] = rawtrack["artist"]["#text"]
     tdata["title"] = rawtrack["name"]
     tdata["album"] = rawtrack["album"]["#text"]
-    tdata["cover"] = rawtrack["image"][1]["#text"]
+    if env.QUANTIZE_COVER:
+        # Fetch slightly higher resolution (174x174 instead of 64x64) for downscaling
+        tdata["cover"] = rawtrack["image"][2]["#text"]
+    else:
+        tdata["cover"] = rawtrack["image"][1]["#text"]
     # Handle optonal fields
     if tdata["album"] == "":
         tdata["album"] = "Unknown Album"
@@ -89,6 +93,17 @@ def compile_image(tdata: dict):
     else:
         textcolor = "black"
     cover = Image.open(BytesIO(requests.get(tdata["cover"]).content))
+    # Do some processing for stylizing a cover art
+    if env.QUANTIZE_COVER:
+        cover = (
+            cover.resize((64, 64))
+            .convert("RGB")
+            .quantize(
+                colors=32,
+                method=Image.Quantize.MAXCOVERAGE,
+                dither=Image.Dither.FLOYDSTEINBERG,
+            )
+        )
     canvas.paste(cover, (4, 19))
 
     # 174px max length, 12 or 6px/char depending on font. 14ch max ASCII; ~8ch JP
