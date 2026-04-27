@@ -1,6 +1,6 @@
 [project]
 name = "np"
-version = "0.2.3"
+version = "0.2.4"
 description = "last.fm-powered forum signature nanoservice"
 authors = [
     {name = "Niko Shens", email = "voidlynx@icloud.com"}

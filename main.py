@@ -16,7 +16,7 @@ app = Flask(__name__)
 trackdata = {}
 titlefont = ImageFont.truetype("static/visitor1.ttf", size=20)
 subtitlefont = ImageFont.truetype("static/visitor1.ttf", size=10)
-nonasciifont = ImageFont.truetype("static/NotoSansJP-Regular.ttf", size=20)
+nonasciifont = ImageFont.truetype("static/NotoSansJP-Regular.ttf", size=16)
 nonasciisubfont = ImageFont.truetype("static/NotoSansJP-Regular.ttf", size=10)
 if env.DARK_MODE:
     template_nowlistening = Image.open("static/template-nowlistening-dark.png")
@@ -110,7 +110,13 @@ def compile_image(tdata: dict):
     if tdata["title"].isascii():
         maxlength = 14
     else:
-        maxlength = 8
+        # Check if over 60% of characters are ASCII to not cut prematurely. For cases like:
+        # Cameron Winter - Nausicaä (Love Will Be Revealed)
+        ascii_count = sum(1 for char in tdata["title"] if char.isascii())
+        if (ascii_count / len(tdata["title"])) > 0.6:
+            maxlength = 21
+        else:
+            maxlength = 8
 
     # Handle max lengths
     # Title has to be cut off after 3 lines
